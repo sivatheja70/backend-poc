@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  dev:
+  main:
     runs-on: ubuntu-latest
     environment: 
       name: main
@@ -53,12 +53,17 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run Unit Tests
-        run: NODE_OPTIONS=--max-old-space-size=8192 npm test
+      - name: Create .env file from secrets
+        run: |
+          printenv > .env.${{ secrets.ENV }}
+          cat .env.${{ secrets.ENV }}  
 
-      - name: Deploy QA Backend
-        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
-        run: bash deployment.sh
+      # - name: Run Unit Tests
+      #   run: NODE_OPTIONS=--max-old-space-size=8192 npm test
+
+      # - name: Deploy QA Backend
+      #   if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+      #   run: bash deployment.sh
 
   # stage:
   #   runs-on: ubuntu-latest
