@@ -6,7 +6,6 @@ on:
       - main
       - stage
       - dev
-      - poc
   workflow_dispatch:
 
 jobs:
@@ -20,13 +19,12 @@ jobs:
         run: |
           curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
           unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-          ./sam-installation/install
+          ./sam-installation/install --update
           sam --version
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
           unzip awscliv2.zip
           ./aws/install
-          (sam validate)
-          # aws cloudformation validate-template --template-body file://admin-panel.yml
+          sam validate
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -46,14 +44,17 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
         run: bash deployment.sh
 
-  # dev:
+  # stage:
   #   runs-on: ubuntu-latest
   #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
   #     - name: Verify Templates
   #       run: |
   #         curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
   #         unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-  #         ./sam-installation/install
+  #         ./sam-installation/install --update
   #         sam --version
   #         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
   #         unzip awscliv2.zip
@@ -61,33 +62,39 @@ jobs:
   #         (cd SAMBackEnd && sam validate)
   #         aws cloudformation validate-template --template-body file://admin-panel.yml
 
-  #     - name: Unit Tests
-  #       runs-on: ubuntu-latest
-  #       steps:
-  #         - uses: actions/checkout@v2
-  #         - name: Setup Node.js
-  #           uses: actions/setup-node@v2
-  #           with:
-  #             node-version: '16'
-  #         - run: npm install
-  #         - run: npm run setup-deps
-  #         - run: cd SAMBackEnd/ && npm install
-  #         - name: Run Unit Tests
-  #           run: NODE_OPTIONS=--max-old-space-size=8192 npm test
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '16'
 
-  #     - name: Deploy Dev Backend
-  #       if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
+  #     - name: Install dependencies
+  #       run: npm install
+
+  #     - name: Setup dependencies
+  #       run: npm run setup-deps
+
+  #     - name: Run Unit Tests
+  #       run: |
+  #         cd SAMBackEnd/
+  #         npm install
+  #         NODE_OPTIONS=--max-old-space-size=8192 npm test
+
+  #     - name: Deploy Stage Backend
+  #       if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
   #       run: bash deployment.sh
 
   # prod:
   #   runs-on: ubuntu-latest
   #   needs: dev
   #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
   #     - name: Verify Templates
   #       run: |
   #         curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
   #         unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-  #         ./sam-installation/install
+  #         ./sam-installation/install --update
   #         sam --version
   #         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
   #         unzip awscliv2.zip
@@ -95,20 +102,23 @@ jobs:
   #         (cd SAMBackEnd && sam validate)
   #         aws cloudformation validate-template --template-body file://admin-panel.yml
 
-  #     - name: Unit Tests
-  #       runs-on: ubuntu-latest
-  #       steps:
-  #         - uses: actions/checkout@v2
-  #         - name: Setup Node.js
-  #           uses: actions/setup-node@v2
-  #           with:
-  #             node-version: '16'
-  #         - run: npm install
-  #         - run: npm run setup-deps
-  #         - run: cd SAMBackEnd/ && npm install
-  #         - name: Run Unit Tests
-  #           run: NODE_OPTIONS=--max-old-space-size=8192 npm test
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '16'
+
+  #     - name: Install dependencies
+  #       run: npm install
+
+  #     - name: Setup dependencies
+  #       run: npm run setup-deps
+
+  #     - name: Run Unit Tests
+  #       run: |
+  #         cd SAMBackEnd/
+  #         npm install
+  #         NODE_OPTIONS=--max-old-space-size=8192 npm test
 
   #     - name: Deploy Prod Backend
-  #       if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
+  #       if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
   #       run: bash deployment.sh
