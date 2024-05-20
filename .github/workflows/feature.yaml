@@ -6,11 +6,15 @@ on:
       - main
       - stage
       - dev
+  workflow_dispatch:
 
 jobs:
   dev:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Verify Templates
         run: |
           curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
@@ -23,18 +27,19 @@ jobs:
           (sam validate)
           # aws cloudformation validate-template --template-body file://admin-panel.yml
 
-      - name: Unit Tests
-        runs-on: ubuntu-latest
-        steps:
-          - uses: actions/checkout@v2
-          - name: Setup Node.js
-            uses: actions/setup-node@v2
-            with:
-              node-version: '16'
-          - run: npm install
-          - run: npm run setup-deps
-          - name: Run Unit Tests
-            run: NODE_OPTIONS=--max-old-space-size=8192 npm test
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup dependencies
+        run: npm run setup-deps
+
+      - name: Run Unit Tests
+        run: NODE_OPTIONS=--max-old-space-size=8192 npm test
 
       - name: Deploy QA Backend
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
