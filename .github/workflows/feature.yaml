@@ -53,9 +53,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Setup dependencies
-        run: npm run setup-deps
-
       - name: Run Unit Tests
         run: NODE_OPTIONS=--max-old-space-size=8192 npm test
 
