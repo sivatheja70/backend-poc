@@ -9,22 +9,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  main:
+  deploy:
     runs-on: ubuntu-latest
-    environment: 
+    environment:
       name: main
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Set up AWS CLI
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-          role-duration-seconds: 1200
-          audience: sts.amazonaws.com   
 
       - name: Install and Update AWS SAM CLI
         run: |
@@ -40,11 +31,6 @@ jobs:
           sudo ./aws/install --update
           aws --version
 
-      - name: Verify Templates
-        run: |
-          sam validate
-          # aws cloudformation validate-template --template-body file://admin-panel.yml
-
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
@@ -53,93 +39,38 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Create .env file from secrets
-        run: |
-          printenv > .env.${{ secrets.ENV }}
-          cat .env.${{ secrets.ENV }}  
+      # - name: Setup dependencies
+      #   run: npm run setup-deps
 
       # - name: Run Unit Tests
       #   run: NODE_OPTIONS=--max-old-space-size=8192 npm test
 
-      # - name: Deploy QA Backend
-      #   if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
-      #   run: bash deployment.sh
+      - name: Create .env file from secrets
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        run: |
+          printenv | grep 'SECRET_KEY_' > .env.${{ secrets.ENV }}
+          cat .env.${{ secrets.ENV }}
 
-  # stage:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+      - name: Read .env file and construct parameter overrides
+        id: construct-params
+        run: |
+          PARAMS=""
+          while IFS= read -r line; do
+            IFS='=' read -r key value <<< "$line"
+            PARAMS="$PARAMS $key=$value"
+          done < .env.${{ secrets.ENV }}
+          echo "::set-output name=params::$PARAMS"
 
-  #     - name: Verify Templates
-  #       run: |
-  #         curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-  #         unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-  #         ./sam-installation/install --update
-  #         sam --version
-  #         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  #         unzip awscliv2.zip
-  #         ./aws/install
-  #         (cd SAMBackEnd && sam validate)
-  #         aws cloudformation validate-template --template-body file://admin-panel.yml
-
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v2
-  #       with:
-  #         node-version: '16'
-
-  #     - name: Install dependencies
-  #       run: npm install
-
-  #     - name: Setup dependencies
-  #       run: npm run setup-deps
-
-  #     - name: Run Unit Tests
-  #       run: |
-  #         cd SAMBackEnd/
-  #         npm install
-  #         NODE_OPTIONS=--max-old-space-size=8192 npm test
-
-  #     - name: Deploy Stage Backend
-  #       if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
-  #       run: bash deployment.sh
-
-  # prod:
-  #   runs-on: ubuntu-latest
-  #   needs: dev
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-
-  #     - name: Verify Templates
-  #       run: |
-  #         curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-  #         unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-  #         ./sam-installation/install --update
-  #         sam --version
-  #         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  #         unzip awscliv2.zip
-  #         ./aws/install
-  #         (cd SAMBackEnd && sam validate)
-  #         aws cloudformation validate-template --template-body file://admin-panel.yml
-
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v2
-  #       with:
-  #         node-version: '16'
-
-  #     - name: Install dependencies
-  #       run: npm install
-
-  #     - name: Setup dependencies
-  #       run: npm run setup-deps
-
-  #     - name: Run Unit Tests
-  #       run: |
-  #         cd SAMBackEnd/
-  #         npm install
-  #         NODE_OPTIONS=--max-old-space-size=8192 npm test
-
-  #     - name: Deploy Prod Backend
-  #       if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
-  #       run: bash deployment.sh
+      - name: Deploy Backend
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PARAMS: ${{ steps.construct-params.outputs.params }}
+        run: |
+          sam deploy \
+            --s3-bucket poc-main \
+            --stack-name poc-main \
+            --capabilities CAPABILITY_IAM \
+            --parameter-overrides $PARAMS
