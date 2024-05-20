@@ -14,17 +14,18 @@ Parameters:
       - test
       - prod
       - stage
+      - poc
 
-Conditions:
-  IsProd: !Equals
-    - !Ref Env
-    - prod
-  IsStage: !Equals
-    - !Ref Env
-    - stage
-  IsDev: !Equals
-    - !Ref Env
-    - dev
+# Conditions:
+#   IsProd: !Equals
+#     - !Ref Env
+#     - prod
+#   IsStage: !Equals
+#     - !Ref Env
+#     - stage
+#   IsDev: !Equals
+#     - !Ref Env
+#     - dev
     
 Globals:
   Function:
@@ -54,7 +55,7 @@ Resources:
           Properties:
             Path: /hello
             Method: get
-            RestApiId: !Ref FortressApi
+            RestApiId: !Ref POCAPI
 
   HelloWorldFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -62,13 +63,13 @@ Resources:
       LogGroupName: !Sub /aws/lambda/${HelloWorldFunction}
       RetentionInDays: 7
 
-  FortressApiLogGroup:
+  POCAPILogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Join ['', ['/aws/apigateway/', !Sub '${AWS::StackName}', '/Fortress-custom-log-group']]
       RetentionInDays: !If [IsDev, 1, 365] 
 
-  FortressApi:
+  POCAPI:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref Env
@@ -88,7 +89,7 @@ Resources:
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
       AccessLogSetting:
-        DestinationArn: !GetAtt FortressApiLogGroup.Arn
+        DestinationArn: !GetAtt POCAPILogGroup.Arn
         Format: '$context.requestId $context.identity.sourceIp $context.identity.caller $context.identity.user $context.httpMethod $context.resourcePath $context.status $context.integration.latency $context.requestTime $context.protocol $context.responseLength $context.integrationErrorMessage' 
 
   # FortressSharedLayer:
@@ -101,6 +102,6 @@ Resources:
   #       - nodejs18.x
 
 Outputs:
-  FortressApi:
+  POCAPI:
     Description: 'API Gateway endpoint URL'
     Value: !Sub 'https://${AWS::StackName}.execute-api.${AWS::Region}.amazonaws.com/'

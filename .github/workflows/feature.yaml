@@ -6,6 +6,7 @@ on:
       - main
       - stage
       - dev
+      - poc
   workflow_dispatch:
 
 jobs:
