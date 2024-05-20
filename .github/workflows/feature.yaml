@@ -11,9 +11,20 @@ on:
 jobs:
   dev:
     runs-on: ubuntu-latest
+    environment: 
+      name: main
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          role-duration-seconds: 1200
+          audience: sts.amazonaws.com   
 
       - name: Install and Update AWS SAM CLI
         run: |
