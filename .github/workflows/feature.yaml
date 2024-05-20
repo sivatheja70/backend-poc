@@ -51,7 +51,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
-          printenv | grep 'SECRET_KEY_' > .env.${{ secrets.ENV }}
+          printenv | grep 'AWS' > .env.${{ secrets.ENV }}
           cat .env.${{ secrets.ENV }}
 
       - name: Read .env file and construct parameter overrides
