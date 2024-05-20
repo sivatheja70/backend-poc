@@ -1,0 +1,109 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'sam-app3
+
+  Sample SAM Template for sam-app3
+
+  '
+Parameters:
+  Env:
+    Type: String
+    AllowedValues:
+    - local
+    - dev
+    - test
+    - prod
+    - stage
+    - poc
+Globals:
+  Function:
+    Timeout: 365
+    MemorySize: 512
+    Runtime: nodejs18.x
+    Architectures:
+    - x86_64
+    Environment:
+      Variables:
+        ENV:
+          Ref: Env
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: HelloWorldFunction
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Timeout: 365
+      MemorySize: 512
+      Events:
+        HelloWorldApi:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
+            RestApiId:
+              Ref: POCAPI
+    Metadata:
+      SamResourceId: HelloWorldFunction
+  HelloWorldFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${HelloWorldFunction}
+      RetentionInDays: 7
+  POCAPILogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+        - ''
+        - - /aws/apigateway/
+          - Fn::Sub: ${AWS::StackName}
+          - /POC-custom-log-group
+      RetentionInDays:
+        Fn::If:
+        - IsDev
+        - 1
+        - 365
+  POCAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName:
+        Ref: Env
+      CacheClusterEnabled: true
+      CacheClusterSize: '0.5'
+      MethodSettings:
+      - ResourcePath: /*
+        HttpMethod: '*'
+        CacheTtlInSeconds: 0
+        CachingEnabled: false
+        CacheDataEncrypted: false
+        MetricsEnabled: true
+        ThrottlingBurstLimit:
+          Fn::If:
+          - IsProd
+          - 5000
+          - 2000
+        ThrottlingRateLimit:
+          Fn::If:
+          - IsProd
+          - 3000.0
+          - 1000.0
+      Cors:
+        AllowMethods: '''*'''
+        AllowHeaders: '''*'''
+        AllowOrigin: '''*'''
+      AccessLogSetting:
+        DestinationArn:
+          Fn::GetAtt:
+          - POCAPILogGroup
+          - Arn
+        Format: $context.requestId $context.identity.sourceIp $context.identity.caller
+          $context.identity.user $context.httpMethod $context.resourcePath $context.status
+          $context.integration.latency $context.requestTime $context.protocol $context.responseLength
+          $context.integrationErrorMessage
+Outputs:
+  POCAPI:
+    Description: API Gateway endpoint URL
+    Value:
+      Fn::Sub: https://${AWS::StackName}.execute-api.${AWS::Region}.amazonaws.com/

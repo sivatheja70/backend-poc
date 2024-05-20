@@ -9,22 +9,30 @@ on:
   workflow_dispatch:
 
 jobs:
-  main:
+  dev:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Verify Templates
+      - name: Install and Update AWS SAM CLI
         run: |
           curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
           unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-          ./sam-installation/install --update
+          sudo ./sam-installation/install --update
           sam --version
+
+      - name: Install and Update AWS CLI
+        run: |
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
           unzip awscliv2.zip
-          ./aws/install
+          sudo ./aws/install --update
+          aws --version
+
+      - name: Verify Templates
+        run: |
           sam validate
+          # aws cloudformation validate-template --template-body file://admin-panel.yml
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
