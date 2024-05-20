@@ -6,11 +6,6 @@ on:
       - main
       - stage
       - dev
-  workflow_dispatch:
-    branches:
-      - main
-      - stage
-      - dev
 
 jobs:
   dev:
