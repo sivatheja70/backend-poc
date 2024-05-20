@@ -1,0 +1,113 @@
+name: NodeJS CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - stage
+      - dev
+  workflow_dispatch:
+    branches:
+      - main
+      - stage
+      - dev
+
+jobs:
+  dev:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Templates
+        run: |
+          curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+          unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+          ./sam-installation/install
+          sam --version
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          (sam validate)
+          # aws cloudformation validate-template --template-body file://admin-panel.yml
+
+      - name: Unit Tests
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v2
+          - name: Setup Node.js
+            uses: actions/setup-node@v2
+            with:
+              node-version: '16'
+          - run: npm install
+          - run: npm run setup-deps
+          - name: Run Unit Tests
+            run: NODE_OPTIONS=--max-old-space-size=8192 npm test
+
+      - name: Deploy QA Backend
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        run: bash deployment.sh
+
+  # dev:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Verify Templates
+  #       run: |
+  #         curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+  #         unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+  #         ./sam-installation/install
+  #         sam --version
+  #         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  #         unzip awscliv2.zip
+  #         ./aws/install
+  #         (cd SAMBackEnd && sam validate)
+  #         aws cloudformation validate-template --template-body file://admin-panel.yml
+
+  #     - name: Unit Tests
+  #       runs-on: ubuntu-latest
+  #       steps:
+  #         - uses: actions/checkout@v2
+  #         - name: Setup Node.js
+  #           uses: actions/setup-node@v2
+  #           with:
+  #             node-version: '16'
+  #         - run: npm install
+  #         - run: npm run setup-deps
+  #         - run: cd SAMBackEnd/ && npm install
+  #         - name: Run Unit Tests
+  #           run: NODE_OPTIONS=--max-old-space-size=8192 npm test
+
+  #     - name: Deploy Dev Backend
+  #       if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
+  #       run: bash deployment.sh
+
+  # prod:
+  #   runs-on: ubuntu-latest
+  #   needs: dev
+  #   steps:
+  #     - name: Verify Templates
+  #       run: |
+  #         curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+  #         unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+  #         ./sam-installation/install
+  #         sam --version
+  #         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  #         unzip awscliv2.zip
+  #         ./aws/install
+  #         (cd SAMBackEnd && sam validate)
+  #         aws cloudformation validate-template --template-body file://admin-panel.yml
+
+  #     - name: Unit Tests
+  #       runs-on: ubuntu-latest
+  #       steps:
+  #         - uses: actions/checkout@v2
+  #         - name: Setup Node.js
+  #           uses: actions/setup-node@v2
+  #           with:
+  #             node-version: '16'
+  #         - run: npm install
+  #         - run: npm run setup-deps
+  #         - run: cd SAMBackEnd/ && npm install
+  #         - name: Run Unit Tests
+  #           run: NODE_OPTIONS=--max-old-space-size=8192 npm test
+
+  #     - name: Deploy Prod Backend
+  #       if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
+  #       run: bash deployment.sh
