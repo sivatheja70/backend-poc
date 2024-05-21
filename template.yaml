@@ -11,16 +11,16 @@ Parameters:
     AllowedValues:
       - main
 
-# Conditions:
-#   IsProd: !Equals
-#     - !Ref Env
-#     - prod
-#   IsStage: !Equals
-#     - !Ref Env
-#     - stage
-#   IsDev: !Equals
-#     - !Ref Env
-#     - dev
+Conditions:
+  IsProd: !Equals
+    - !Ref Env
+    - prod
+  IsStage: !Equals
+    - !Ref Env
+    - stage
+  IsDev: !Equals
+    - !Ref Env
+    - dev
     
 Globals:
   Function:
