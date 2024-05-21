@@ -73,4 +73,5 @@ jobs:
             --s3-bucket poc-main \
             --stack-name poc-main \
             --capabilities CAPABILITY_IAM \
-            --parameter-overrides $PARAMS
+            --parameter-overrides $PARAMS \
+            --template-file template.yaml

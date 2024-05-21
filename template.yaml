@@ -45,7 +45,7 @@ Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: helloworld
+      CodeUri: ./helloworld
       Handler: index.handler
       Runtime: nodejs18.x
       Timeout: 365
