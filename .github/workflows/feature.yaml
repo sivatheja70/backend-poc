@@ -24,6 +24,15 @@ jobs:
           sudo ./sam-installation/install --update
           sam --version
 
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          role-duration-seconds: 1200
+          audience: sts.amazonaws.com
+
       - name: Install and Update AWS CLI
         run: |
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -69,12 +78,5 @@ jobs:
         env:
           PARAMS: ${{ steps.construct-params.outputs.params }}
         run: |
-          ls -al
-          pwd
           sam build
-          sam deploy \
-            --s3-bucket poc-main \
-            --stack-name poc-main \
-            --capabilities CAPABILITY_IAM \
-            --parameter-overrides $PARAMS \
-            --template-file template.yaml
+          sam deploy --config-env main --parameter-overrides $PARAMS 
