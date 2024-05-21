@@ -33,13 +33,6 @@ jobs:
           role-duration-seconds: 1200
           audience: sts.amazonaws.com
 
-      # - name: Install and Update AWS CLI
-      #   run: |
-      #     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-      #     unzip awscliv2.zip
-      #     sudo ./aws/install --update
-      #     aws --version
-
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
@@ -75,6 +68,8 @@ jobs:
           echo "::set-output name=params::$PARAMS"
 
       - name: Deploy Backend
+        environment:
+          name: main
         if: github.event_name == 'push'
         env:
           PARAMS: ${{ steps.construct-params.outputs.params }}
