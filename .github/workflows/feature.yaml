@@ -65,7 +65,7 @@ jobs:
           echo "::set-output name=params::$PARAMS"
 
       - name: Deploy Backend
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'push'
         env:
           PARAMS: ${{ steps.construct-params.outputs.params }}
         run: |
