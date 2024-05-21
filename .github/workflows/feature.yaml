@@ -60,7 +60,6 @@ jobs:
       - name: Read .env file and construct parameter overrides
         id: construct-params
         run: |
-          ENV: ${{ secrets.ENV }}
           PARAMS=""
           while IFS= read -r line; do
             IFS='=' read -r key value <<< "$line"
