@@ -73,5 +73,6 @@ jobs:
           ENV: ${{ secrets.ENV }}
           PARAMS: ${{ steps.construct-params.outputs.params }}
         run: |
+          sam validate
           sam build
-          sam deploy --config-env main --parameter-overrides $PARAMS 
+          sam deploy --parameter-overrides $PARAMS 
