@@ -69,9 +69,8 @@ jobs:
 
       - name: Deploy Backend
         if: github.event_name == 'push'
-        environment:
-          name: main
-        env:
+        env:         
+          ENV: ${{ secrets.ENV }}
           PARAMS: ${{ steps.construct-params.outputs.params }}
         run: |
           sam build
