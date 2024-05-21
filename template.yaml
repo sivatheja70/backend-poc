@@ -6,7 +6,7 @@ Description: >
   Sample SAM Template for sam-app3
 
 Parameters:
-  ENVIRONMENT:
+  AWS_ENVIRONMENT:
     Type: String
     AllowedValues:
       - local
