@@ -6,7 +6,7 @@ Description: >
   Sample SAM Template for sam-app3
 
 Parameters:
-  Env:
+  ENVIRONMENT:
     Type: String
     AllowedValues:
       - local
@@ -39,7 +39,7 @@ Globals:
     #   - !Ref POCSharedLayer
     # Environment:
     #   Variables:
-    #     ENV: !Ref Env
+    #     ENVIRONMENT: !Ref Env
 
 Resources:
   HelloWorldFunction:
