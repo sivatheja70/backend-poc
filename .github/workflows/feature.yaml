@@ -60,7 +60,7 @@ jobs:
           PARAMS=""
           while IFS= read -r line; do
             IFS='=' read -r key value <<< "$line"
-            PARAMS="$PARAMS $key=$value"
+            PARAMS="$PARAMS ParameterKey=$key,ParameterValue=$value"
           done < .env.${{ secrets.ENV }}
           echo "::set-output name=params::$PARAMS"
 
