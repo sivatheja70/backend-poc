@@ -6,7 +6,7 @@ stack_name = "poc-main"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
 s3_prefix = "poc-main"
 region = "us-east-1"
-confirm_changeset = true
+confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
 disable_rollback = true
@@ -18,10 +18,11 @@ stack_name = "poc-main"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
 s3_prefix = "poc-main"
 region = "us-east-1"
-confirm_changeset = true
+confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
 disable_rollback = true
+
 
 [stage]
 [stage.deploy]
@@ -30,7 +31,7 @@ stack_name = "poc-stage"
 s3_bucket = "sam-cli-suntec-s3-samclisourcebucket-g65n9kwrflxz"
 s3_prefix = "poc-stage"
 region = "ap-southeast-1"
-confirm_changeset = true
+confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
 
@@ -41,6 +42,6 @@ stack_name = "poc-prod"
 s3_bucket = "sam-cli-suntec-s3-samclisourcebucket-g65n9kwrflxz"
 s3_prefix = "poc-prod"
 region = "ap-southeast-1"
-confirm_changeset = true
+confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
