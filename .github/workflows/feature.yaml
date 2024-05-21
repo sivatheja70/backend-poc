@@ -69,6 +69,7 @@ jobs:
         env:
           PARAMS: ${{ steps.construct-params.outputs.params }}
         run: |
+          sam build
           sam deploy \
             --s3-bucket poc-main \
             --stack-name poc-main \
