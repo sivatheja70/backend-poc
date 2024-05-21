@@ -6,7 +6,7 @@ Description: >
   Sample SAM Template for sam-app3
 
 Parameters:
-  Env:
+  ENV:
     Type: String
     AllowedValues:
       - local
