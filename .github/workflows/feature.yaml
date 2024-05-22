@@ -1,15 +1,31 @@
-name: NodeJS CI/CD
+name: Build and Deploy
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
     branches:
       - main
-      - stage
-      - dev
-  workflow_dispatch:
 
 jobs:
-  deploy:
+  
+  unit_test:
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.x'
+
+      - name: Unit-tests
+        run: |
+          npm i
+          npm run test
+
+  if_merged:
     runs-on: ubuntu-latest
     environment:
       name: main
@@ -76,3 +92,94 @@ jobs:
           sam validate
           sam build
           sam deploy --parameter-overrides $PARAMS 
+
+  notify_on_success:
+    runs-on: ubuntu-latest
+    environment:
+      name: poc
+    needs: if_merged
+    if: success()
+    steps:
+      - name: Notify Slack for pipeline success
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          REPO_NAME: ${{ secrets.REPO_NAME }}
+          ENVIRONMENT: ${{ secrets.ENV }}  
+          REPO_SLUG: ${{ secrets.REPO_SLUG }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{
+            "text": "GitHub Pipeline Status Notification",
+            "attachments": [
+              {
+                "fields": [
+                  {
+                    "title": "Repository",
+                    "value": "'${REPO_NAME}'"
+                  },
+                  {
+                    "title": "Environment",
+                    "value": "'${ENVIRONMENT}'"
+                  },
+                  {
+                    "title": "Status",
+                    "value": "SUCCESS",
+                    "color": "00FF00"
+                  },
+                  {
+                    "title": "Pipeline URL",
+                    "value": "https://github.com/${{ secrets.REPO_SLUG }}/${{ secrets.REPO_NAME }}/actions/runs/${{ github.run_id }}"
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "${{ github.ref }}"
+                  }
+                ]
+              }
+            ]
+          }' $SLACK_WEBHOOK_URL
+
+  notify_on_failure:
+    runs-on: ubuntu-latest
+    environment:
+      name: poc
+    needs: if_merged
+    if: failure()
+    steps:
+      - name: Notify Slack for pipeline failure
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          REPO_NAME: ${{ secrets.REPO_NAME }}
+          ENVIRONMENT: ${{ secrets.ENV }} 
+          REPO_SLUG: ${{ secrets.REPO_SLUG }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{
+            "text": "GitHub Pipeline Status Notification",
+            "attachments": [
+              {
+                "fields": [
+                  {
+                    "title": "Repository",
+                    "value": "'${REPO_NAME}'"
+                  },
+                  {
+                    "title": "Environment",
+                    "value": "'${ENVIRONMENT}'"
+                  },
+                  {
+                    "title": "Status",
+                    "value": "FAILED",
+                    "color": "#FF0000"
+                  },
+                  {
+                    "title": "Pipeline URL",
+                    "value": "https://github.com/${{ secrets.REPO_SLUG }}/${{ secrets.REPO_NAME }}/actions/runs/${{ github.run_id }}"
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "${{ github.ref }}"
+                  }
+                ]
+              }
+            ]
+          }' $SLACK_WEBHOOK_URL
+        
