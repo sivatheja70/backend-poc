@@ -96,7 +96,7 @@ jobs:
   notify_on_success:
     runs-on: ubuntu-latest
     environment:
-      name: poc
+      name: main
     needs: if_merged
     if: success()
     steps:
@@ -141,7 +141,7 @@ jobs:
   notify_on_failure:
     runs-on: ubuntu-latest
     environment:
-      name: poc
+      name: main
     needs: if_merged
     if: failure()
     steps:
