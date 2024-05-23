@@ -70,7 +70,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           Env: ${{ secrets.ENV }}
-          StageName: ${{ secrets.STAGENAME }}
+          STAGENAME: ${{ secrets.STAGENAME }}
         run: |
           printenv | grep 'Env' > .env.${{ secrets.ENV }}
           printenv | grep 'STAGENAME' > .env.${{ secrets.STAGENAME }}
@@ -91,7 +91,7 @@ jobs:
         env:         
           ENV: ${{ secrets.ENV }}
           PARAMS: ${{ steps.construct-params.outputs.params }}
-          StageName: ${{ secrets.STAGENAME }}
+          STAGENAME: ${{ secrets.STAGENAME }}
         run: |
           sam validate
           sam build
