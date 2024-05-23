@@ -70,16 +70,14 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           Env: ${{ secrets.ENV }}
-          STAGENAME: ${{ secrets.STAGENAME }}
+          API_ENV: ${{ secrets.API_ENV }}
         run: |
           printenv | grep 'Env' > .env.${{ secrets.ENV }}
-          printenv | grep 'STAGENAME' > .env.${{ secrets.STAGENAME }}
+          printenv | grep 'API' > .env.${{ secrets.API_ENV }}
           cat .env.${{ secrets.ENV }}
 
       - name: Read .env file and construct parameter overrides
         id: construct-params
-        environment:
-          name: main
         run: |
           PARAMS=""
           while IFS= read -r line; do
@@ -93,7 +91,7 @@ jobs:
         env:         
           ENV: ${{ secrets.ENV }}
           PARAMS: ${{ steps.construct-params.outputs.params }}
-          STAGENAME: ${{ secrets.STAGENAME }}
+          API_ENV: ${{ secrets.API_ENV }}
         run: |
           sam validate
           sam build
