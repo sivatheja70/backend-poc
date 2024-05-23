@@ -88,8 +88,9 @@ jobs:
       - name: Deploy Backend
         # if: github.event_name == 'if_merged'
         env:         
-          # ENV: ${{ secrets.ENV }}
+          ENV: ${{ secrets.ENV }}
           PARAMS: ${{ steps.construct-params.outputs.params }}
+          STAGENAME: ${{ secrets.STAGENAME }}
         run: |
           sam validate
           sam build
