@@ -11,7 +11,7 @@ Parameters:
     AllowedValues:
       - local
       - dev
-      - test
+      - main
       - prod
       - stage
   STAGENAME: 
