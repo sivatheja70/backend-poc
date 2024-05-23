@@ -73,6 +73,7 @@ jobs:
           STAGENAME: ${{ secrets.STAGENAME }}
         run: |
           printenv | grep 'Env' > .env.${{ secrets.ENV }}
+          printenv | grep 'STAGENAME' > .env.${{ secrets.STAGENAME }}
           cat .env.${{ secrets.ENV }}
 
       - name: Read .env file and construct parameter overrides
