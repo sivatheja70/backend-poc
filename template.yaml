@@ -14,7 +14,7 @@ Parameters:
       - test
       - prod
       - stage
-  StageName: 
+  STAGENAME: 
     Type: String 
   VpcCIDR:
     Type: String
