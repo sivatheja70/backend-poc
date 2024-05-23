@@ -14,7 +14,7 @@ Parameters:
       - main
       - prod
       - stage
-  API_ENV: 
+  STAGENAME: 
     Type: String 
   VpcCIDR:
     Type: String
@@ -64,7 +64,7 @@ Globals:
     Environment:
       Variables:
         env: !Ref Env
-        API_ENV: !Ref API_ENV
+        StageName: !Ref STAGENAME
     VpcConfig:
       SubnetIds:
         - !Ref PrivateSubnet1
@@ -333,7 +333,7 @@ Resources:
   testApi:
     Type: AWS::Serverless::Api
     Properties:
-      Api_Env: !Ref API_ENV
+      StageName: !Ref STAGENAME
       CacheClusterEnabled: true
       CacheClusterSize: '0.5'
       MethodSettings:
