@@ -64,7 +64,7 @@ Globals:
     Environment:
       Variables:
         env: !Ref Env
-        STAGENAME: !Ref STAGENAME
+        StageName: !Ref STAGENAME
     VpcConfig:
       SubnetIds:
         - !Ref PrivateSubnet1
@@ -351,7 +351,7 @@ Resources:
   testApi:
     Type: AWS::Serverless::Api
     Properties:
-      STAGENAME: !Ref STAGENAME
+      StageName: !Ref STAGENAME
       CacheClusterEnabled: true
       CacheClusterSize: '0.5'
       MethodSettings:
