@@ -1,0 +1,447 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'sam-app3
+
+  Sample SAM Template for sam-app3
+
+  '
+Parameters:
+  Env:
+    Type: String
+    AllowedValues:
+    - local
+    - dev
+    - main
+    - prod
+    - stage
+  STAGENAME:
+    Type: String
+  VpcCIDR:
+    Type: String
+    Default: 10.180.0.0/16
+  PublicSubnet1CIDR:
+    Type: String
+    Default: 10.180.10.0/24
+  PublicSubnet2CIDR:
+    Type: String
+    Default: 10.180.11.0/24
+  PrivateSubnet1CIDR:
+    Type: String
+    Default: 10.180.20.0/24
+  PrivateSubnet2CIDR:
+    Type: String
+    Default: 10.180.21.0/24
+  PrivateSubnet3CIDR:
+    Type: String
+    Default: 10.180.22.0/24
+Globals:
+  Function:
+    Timeout: 365
+    MemorySize: 512
+    Runtime: nodejs18.x
+    Architectures:
+    - x86_64
+    Layers:
+    - Ref: testDependencyLayer
+    - Ref: testSharedLayer
+    Environment:
+      Variables:
+        env:
+          Ref: Env
+        StageName:
+          Ref: STAGENAME
+    VpcConfig:
+      SubnetIds:
+      - Ref: PrivateSubnet1
+      SecurityGroupIds:
+      - Ref: NoIngressSecurityGroup
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock:
+        Ref: VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-${Env}
+      - Key: ProjectName
+        Value: test
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-${Env}
+      - Key: ProjectName
+        Value: test
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId:
+        Ref: InternetGateway
+      VpcId:
+        Ref: VPC
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::Select:
+        - 0
+        - Fn::GetAZs: ''
+      CidrBlock:
+        Ref: PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-${Env} Public Subnet (AZ1)
+      - Key: ProjectName
+        Value: test
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::Select:
+        - 1
+        - Fn::GetAZs: ''
+      CidrBlock:
+        Ref: PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-${Env} Public Subnet (AZ2)
+      - Key: ProjectName
+        Value: test
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::Select:
+        - 0
+        - Fn::GetAZs: ''
+      CidrBlock:
+        Ref: PrivateSubnet1CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-${Env} Private Subnet (AZ1)
+      - Key: ProjectName
+        Value: test
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::Select:
+        - 1
+        - Fn::GetAZs: ''
+      CidrBlock:
+        Ref: PrivateSubnet2CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-${Env} Private Subnet (AZ2)
+      - Key: ProjectName
+        Value: test
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::Select:
+        - 2
+        - Fn::GetAZs: ''
+      CidrBlock:
+        Ref: PrivateSubnet3CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-${Env} Private Subnet (AZ3)
+      - Key: ProjectName
+        Value: test
+  testNatGatewayEIP:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-ng-eip-${Env}
+      - Key: ProjectName
+        Value: test
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+        - testNatGatewayEIP
+        - AllocationId
+      SubnetId:
+        Ref: PublicSubnet1
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-ng-${Env}
+      - Key: ProjectName
+        Value: test
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-${Env} Public Routes
+      - Key: ProjectName
+        Value: test
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId:
+        Ref: InternetGateway
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId:
+        Ref: PublicSubnet1
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId:
+        Ref: PublicSubnet2
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value:
+          Fn::Sub: test-platform-vpc-${Env} Private Routes (AZ1)
+      - Key: ProjectName
+        Value: test
+  DefaultPrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId:
+        Ref: NatGateway
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      SubnetId:
+        Ref: PrivateSubnet1
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      SubnetId:
+        Ref: PrivateSubnet2
+  PrivateSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      SubnetId:
+        Ref: PrivateSubnet3
+  NoIngressSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName:
+        Fn::Sub: test-no-ingress-sg-${Env}
+      GroupDescription: Security group with no ingress rule
+      VpcId:
+        Ref: VPC
+  testDependencyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: dependency-layer
+      Description: Shared NPM Packages and Dependencies.
+      ContentUri: ..\..\dependencies
+      CompatibleRuntimes:
+      - nodejs18.x
+  testSharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName:
+        Fn::Sub: test-SharedLayer-${Env}
+      Description: Shared Common Functions and Files.
+      ContentUri: ..\..\layers
+      CompatibleRuntimes:
+      - nodejs18.x
+  loginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: loginFunction
+      Handler: index.handler
+      Events:
+        LoginApi:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: post
+            RestApiId:
+              Ref: testApi
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: LockOutInfoTable
+    Metadata:
+      SamResourceId: loginFunction
+  loginFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+        - ''
+        - - /aws/lambda/
+          - Ref: loginFunction
+      RetentionInDays:
+        Fn::If:
+        - IsDev
+        - 7
+        - 365
+  propertyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: propertyFunction
+      Handler: index.handler
+      Events:
+        PropertyApi:
+          Type: Api
+          Properties:
+            Path: /property
+            Method: post
+            RestApiId:
+              Ref: testApi
+    Metadata:
+      SamResourceId: propertyFunction
+  propertyFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+        - ''
+        - - /aws/lambda/
+          - Ref: propertyFunction
+      RetentionInDays:
+        Fn::If:
+        - IsDev
+        - 7
+        - 365
+  testApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+        - ''
+        - - /aws/apigateway/
+          - Fn::Sub: ${AWS::StackName}
+          - /test-custom-log-group
+      RetentionInDays:
+        Fn::If:
+        - IsDev
+        - 7
+        - 365
+  testApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName:
+        Ref: STAGENAME
+      CacheClusterEnabled: true
+      CacheClusterSize: '0.5'
+      MethodSettings:
+      - ResourcePath: /*
+        HttpMethod: '*'
+        CacheTtlInSeconds: 0
+        CachingEnabled: false
+        CacheDataEncrypted: false
+        MetricsEnabled: true
+        ThrottlingBurstLimit:
+          Fn::If:
+          - IsProd
+          - 5000
+          - 2000
+        ThrottlingRateLimit:
+          Fn::If:
+          - IsProd
+          - 3000.0
+          - 1000.0
+      Cors:
+        AllowMethods: '''*'''
+        AllowHeaders: '''*'''
+        AllowOrigin: '''*'''
+      AccessLogSetting:
+        DestinationArn:
+          Fn::GetAtt:
+          - testApiLogGroup
+          - Arn
+        Format: $context.requestId $context.identity.sourceIp $context.identity.caller
+          $context.identity.user $context.httpMethod $context.resourcePath $context.status
+          $context.integration.latency $context.requestTime $context.protocol $context.responseLength
+          $context.integrationErrorMessage
+  LockOutInfoTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TableName: lockout-info
+      AttributeDefinitions:
+      - AttributeName: username
+        AttributeType: S
+      - AttributeName: maxAttempts
+        AttributeType: N
+      - AttributeName: attemptCounter
+        AttributeType: N
+      KeySchema:
+      - AttributeName: username
+        KeyType: HASH
+      - AttributeName: maxAttempts
+        KeyType: RANGE
+      - AttributeName: attemptCounter
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 0
+        WriteCapacityUnits: 0
+      TimeToLiveSpecification:
+        AttributeName: TimeToLive
+        Enabled: true
+      Tags:
+      - Key: ProjectName
+        Value: test
+Outputs:
+  testApi:
+    Description: API Gateway endpoint URL
+    Value:
+      Fn::Sub: https://${AWS::StackName}.execute-api.${AWS::Region}.amazonaws.com/
