@@ -11,12 +11,12 @@ capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
 disable_rollback = true
 
-[dev]
-[dev.deploy]
-[dev.deploy.parameters]
+[main]
+[main.deploy]
+[main.deploy.parameters]
 stack_name = "test-store-portal-main"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
-s3_prefix = "test-store-portal-dev"
+s3_prefix = "test-store-portal-main"
 region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
