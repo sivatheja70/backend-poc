@@ -9,7 +9,36 @@ Parameters:
   Env:
     Type: String
     AllowedValues:
-      - main
+      - local
+      - dev
+      - test
+      - prod
+      - stage
+  StageName: 
+    Type: String 
+  VpcCIDR:
+    Type: String
+    Default: 10.180.0.0/16
+
+  PublicSubnet1CIDR:
+    Type: String
+    Default: 10.180.10.0/24
+
+  PublicSubnet2CIDR:
+    Type: String
+    Default: 10.180.11.0/24
+
+  PrivateSubnet1CIDR:
+    Type: String
+    Default: 10.180.20.0/24
+
+  PrivateSubnet2CIDR:
+    Type: String
+    Default: 10.180.21.0/24
+
+  PrivateSubnet3CIDR:
+    Type: String
+    Default: 10.180.22.0/24     
 
 Conditions:
   IsProd: !Equals
@@ -29,45 +58,299 @@ Globals:
     Runtime: nodejs18.x
     Architectures:
       - x86_64
-    # Layers:
-    #   - !Ref POCSharedLayer
-    # Environment:
-    #   Variables:
-    #     ENVIRONMENT: !Ref Env
+    Layers:
+      - !Ref testDependencyLayer
+      - !Ref testSharedLayer
+    Environment:
+      Variables:
+        env: !Ref Env
+    VpcConfig:
+      SubnetIds:
+        - !Ref PrivateSubnet1
+      SecurityGroupIds:
+        - !Ref NoIngressSecurityGroup    
+    Tags:
+      ProjectName: test
+      Environment: !If [IsDev, Development, !Ref Env]    
 
 Resources:
-  HelloWorldFunction:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-${Env}'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-${Env}'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-${Env} Public Subnet (AZ1)'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-${Env} Public Subnet (AZ2)'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-${Env} Private Subnet (AZ1)'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-${Env} Private Subnet (AZ2)'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs '']
+      CidrBlock: !Ref PrivateSubnet3CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-${Env} Private Subnet (AZ3)'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  testNatGatewayEIP:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-ng-eip-${Env}'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt testNatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-ng-${Env}'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-${Env} Public Routes'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-platform-vpc-${Env} Private Routes (AZ1)'
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]
+
+  DefaultPrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet1
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet2
+
+  PrivateSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet3
+
+  NoIngressSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub 'test-no-ingress-sg-${Env}'
+      GroupDescription: 'Security group with no ingress rule'
+      VpcId: !Ref VPC
+
+  testDependencyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: dependency-layer
+      Description: Shared NPM Packages and Dependencies.
+      ContentUri: dependencies/
+      CompatibleRuntimes:
+        - nodejs18.x
+  
+  testSharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub 'test-SharedLayer-${Env}'
+      Description: Shared Common Functions and Files.
+      ContentUri: layers/
+      CompatibleRuntimes:
+        - nodejs18.x
+
+  loginFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./helloworld
+      CodeUri: ./login
       Handler: index.handler
-      Runtime: nodejs18.x
-      Timeout: 365
-      MemorySize: 512
       Events:
-        HelloWorldApi:
+        LoginApi:
           Type: Api
           Properties:
-            Path: /hello
-            Method: get
-            RestApiId: !Ref POCAPI
+            Path: /login
+            Method: post
+            RestApiId: !Ref testApi
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref LockOutInfoTable
 
-  HelloWorldFunctionLogGroup:
+  loginFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub /aws/lambda/${HelloWorldFunction}
-      RetentionInDays: 7
+      LogGroupName: !Join ['', ['/aws/lambda/', !Ref loginFunction]]
+      RetentionInDays: !If [IsDev, 7, 365] 
+  
+  propertyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./property
+      Handler: index.handler
+      Events:
+        PropertyApi:
+          Type: Api
+          Properties:
+            Path: /property
+            Method: post
+            RestApiId: !Ref testApi
 
-  POCAPILogGroup:
+  propertyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Join ['', ['/aws/apigateway/', !Sub '${AWS::StackName}', '/POC-custom-log-group']]
-      RetentionInDays: !If [IsDev, 1, 365] 
+      LogGroupName: !Join ['', ['/aws/lambda/', !Ref propertyFunction]]
+      RetentionInDays: !If [IsDev, 7, 365] 
 
-  POCAPI:
+  testApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', ['/aws/apigateway/', !Sub '${AWS::StackName}', '/test-custom-log-group']]
+      RetentionInDays: !If [IsDev, 7, 365] 
+
+  testApi:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: !Ref Env
+      StageName: !Ref StageName
       CacheClusterEnabled: true
       CacheClusterSize: '0.5'
       MethodSettings:
@@ -84,19 +367,43 @@ Resources:
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
       AccessLogSetting:
-        DestinationArn: !GetAtt POCAPILogGroup.Arn
+        DestinationArn: !GetAtt testApiLogGroup.Arn
         Format: '$context.requestId $context.identity.sourceIp $context.identity.caller $context.identity.user $context.httpMethod $context.resourcePath $context.status $context.integration.latency $context.requestTime $context.protocol $context.responseLength $context.integrationErrorMessage' 
 
-  # POCSharedLayer:
-  #   Type: AWS::Serverless::LayerVersion
-  #   Properties:
-  #     LayerName: !Sub 'POC-SharedLayer-${Env}'
-  #     Description: Shared NPM package.
-  #     ContentUri: 'layer/'
-  #     CompatibleRuntimes:
-  #       - nodejs18.x
+  LockOutInfoTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties: 
+      TableName: lockout-info
+      AttributeDefinitions:
+        - AttributeName: username
+          AttributeType: S
+        - AttributeName: maxAttempts
+          AttributeType: N
+        - AttributeName: attemptCounter
+          AttributeType: N
+      KeySchema:
+        - AttributeName: username
+          KeyType: HASH
+        - AttributeName: maxAttempts
+          KeyType: RANGE
+        - AttributeName: attemptCounter
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 0
+        WriteCapacityUnits: 0
+      TimeToLiveSpecification:
+        AttributeName: TimeToLive
+        Enabled: true
+      Tags:
+        - Key: ProjectName
+          Value: test
+        - Key: Environment
+          Value: !If [IsDev, Development, !Ref Env]  
 
 Outputs:
-  POCAPI:
+  testApi:
     Description: 'API Gateway endpoint URL'
     Value: !Sub 'https://${AWS::StackName}.execute-api.${AWS::Region}.amazonaws.com/'
+

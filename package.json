@@ -1,34 +1,10 @@
 {
   "name": "fortress-store-portal",
-  "version": "1.0.0",
-  "description": "This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.",
-  "main": "index.js",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "db-setup": "docker compose -f docker-compose-local.yaml up -d",
-    "setup-deps": "node ./cli.mjs install-deps",
-    "sam-build": "(sam build --parallel)",
-    "env-params-to-file": "node ./cli.mjs env-params-to-file",
-    "local-backend": " npm run sam-build && (sam local start-api --docker-network sam_backend --config-env local --parameter-overrides $(cat .env.dev))",
-    "local-backend-win": "(sam build --parallel && sam local start-api --docker-network sam_backend --skip-pull-image --env-vars env.json)",
-    "db-teardown": "docker-compose -f docker-compose-local.yaml down",
-    "local-test": "(npm run test)",
-    "sam-main-deploy": "(sam build --parallel &&  sam deploy --stack-name poc-main-dev --config-env dev  --parameter-overrides $(cat .env.dev) )",
-    "sam-main-deploy-ci": "(sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name poc-main-dev --config-env dev  --parameter-overrides $(cat .env.dev) )",
-    "sam-main-env-delete": "(sam delete --stack-name poc-main-dev --region us-east-1)",
-    "sam-qa-deploy": "(sam build --parallel &&  sam deploy --stack-name poc-main-qa --config-env qa  --parameter-overrides $(cat .env.qa) )",
-    "sam-qa-deploy-ci": "(sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name poc-main-qa --config-env qa  --parameter-overrides $(cat .env.qa) )",
-    "sam-qa-env-delete": "(sam delete --stack-name poc-main-qa --region us-east-1)",
-    "sam-uat-deploy": "(sam build --parallel &&  sam deploy --stack-name poc-main-uat --config-env uat --parameter-overrides $(cat .env.uat) )",
-    "sam-uat-deploy-ci": "(sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name poc-main-uat --config-env uat --parameter-overrides $(cat .env.uat) )",
-    "sam-uat-env-delete": "(sam delete --stack-name poc-main-uat --region ap-southeast-1)",
-    "sam-prod-deploy": "(sam build --parallel &&  sam deploy --stack-name poc-main-prod --config-env prod --parameter-overrides $(cat .env.prod) )",
-    "sam-prod-deploy-ci": "(sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name poc-main-prod --config-env prod --parameter-overrides $(cat .env.prod) )",
-    "sam-prod-env-delete": "(sam delete --stack-name poc-main-prod --region ap-southeast-1)",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:chandana79895/backend-poc.git"
+    "test": "jest --config=jest.config.test.mjs",
+    "start": "node ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -37,5 +13,11 @@
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "morgan": "~1.9.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.5",
+    "@babel/preset-env": "^7.24.5",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0"
   }
 }

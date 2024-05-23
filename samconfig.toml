@@ -2,46 +2,47 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "poc-main"
+stack_name = "test-store-portal-dev"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
-s3_prefix = "poc-main"
+s3_prefix = "test-store-portal-dev"
 region = "us-east-1"
-confirm_changeset = false
+confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
 disable_rollback = true
 
-[main]
-[main.deploy]
-[main.deploy.parameters]
-stack_name = "poc-main"
+[dev]
+[dev.deploy]
+[dev.deploy.parameters]
+stack_name = "test-store-portal-dev"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
-s3_prefix = "poc-main"
+s3_prefix = "test-store-portal-dev"
 region = "us-east-1"
-confirm_changeset = false
+confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
 disable_rollback = true
-
 
 [stage]
 [stage.deploy]
 [stage.deploy.parameters]
-stack_name = "poc-stage"
+stack_name = "test-store-portal-stage"
 s3_bucket = "sam-cli-suntec-s3-samclisourcebucket-g65n9kwrflxz"
-s3_prefix = "poc-stage"
+s3_prefix = "test-store-portal-stage"
 region = "ap-southeast-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
+disable_rollback = true
 
 [prod]
 [prod.deploy]
 [prod.deploy.parameters]
-stack_name = "poc-prod"
+stack_name = "test-store-portal-prod"
 s3_bucket = "sam-cli-suntec-s3-samclisourcebucket-g65n9kwrflxz"
-s3_prefix = "poc-prod"
+s3_prefix = "test-store-portal-prod"
 region = "ap-southeast-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
+disable_rollback = true
