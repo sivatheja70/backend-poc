@@ -8,7 +8,7 @@ on:
 
 jobs:
   
-  unit_tests:
+  unit_test:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
     steps:
@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Unit-tests
+      - name: Unit-test
         run: |
           npm i
           npm run test
