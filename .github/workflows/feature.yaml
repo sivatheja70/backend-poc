@@ -58,26 +58,46 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # - name: Setup dependencies
+      #   run: npm run setup-deps
+
+      # - name: Run Unit Tests
+      #   run: NODE_OPTIONS=--max-old-space-size=8192 npm test
+
       - name: Create .env file from secrets
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          Env: ${{ secrets.ENV }}
+          STAGENAME: ${{ secrets.STAGENAME }}
         run: |
-          echo "Env=${{ secrets.ENV }}" > .env
-          echo "StageName=${{ secrets.STAGENAME }}" >> .env
-          cat .env
+          printenv | grep 'Env' > .env.${{ secrets.ENV }}
+          printenv | grep 'STAGENAME' > .env.${{ secrets.STAGENAME }}
+          cat .env.${{ secrets.ENV }}
 
       - name: Read .env file and construct parameter overrides
         id: construct-params
+        environment:
+          name: main
         run: |
-          PARAMS=$(awk -F= '{print "ParameterKey="$1",ParameterValue="$2}' .env | paste -sd ' ')
-          echo "PARAMS=$PARAMS" >> $GITHUB_ENV
+          PARAMS=""
+          while IFS= read -r line; do
+            IFS='=' read -r key value <<< "$line"
+            PARAMS="$PARAMS ParameterKey=$key,ParameterValue=$value"
+          done < .env.${{ secrets.ENV }}
           echo "::set-output name=params::$PARAMS"
 
       - name: Deploy Backend
+        # if: github.event_name == 'if_merged'
         env:         
-          PARAMS: ${{ env.PARAMS }}
+          ENV: ${{ secrets.ENV }}
+          PARAMS: ${{ steps.construct-params.outputs.params }}
+          STAGENAME: ${{ secrets.STAGENAME }}
         run: |
           sam validate
           sam build
-          sam deploy --parameter-overrides $PARAMS
+          sam deploy --parameter-overrides $PARAMS 
 
   notify_on_success:
     runs-on: ubuntu-latest
@@ -168,3 +188,4 @@ jobs:
               }
             ]
           }' $SLACK_WEBHOOK_URL
+        
