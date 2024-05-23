@@ -2,7 +2,7 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "test-store-portal-dev"
+stack_name = "test-store-portal-main"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
 s3_prefix = "test-store-portal-dev"
 region = "us-east-1"
@@ -14,7 +14,7 @@ disable_rollback = true
 [dev]
 [dev.deploy]
 [dev.deploy.parameters]
-stack_name = "test-store-portal-dev"
+stack_name = "test-store-portal-main"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
 s3_prefix = "test-store-portal-dev"
 region = "us-east-1"

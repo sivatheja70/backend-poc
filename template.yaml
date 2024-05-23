@@ -11,7 +11,7 @@ Parameters:
     AllowedValues:
       - local
       - dev
-      - test
+      - main
       - prod
       - stage
   STAGENAME: 
@@ -40,16 +40,16 @@ Parameters:
     Type: String
     Default: 10.180.22.0/24     
 
-Conditions:
-  IsProd: !Equals
-    - !Ref Env
-    - prod
-  IsStage: !Equals
-    - !Ref Env
-    - stage
-  IsDev: !Equals
-    - !Ref Env
-    - dev
+# Conditions:
+#   IsProd: !Equals
+#     - !Ref Env
+#     - prod
+#   IsStage: !Equals
+#     - !Ref Env
+#     - stage
+#   IsDev: !Equals
+#     - !Ref Env
+#     - dev
     
 Globals:
   Function:
@@ -70,9 +70,9 @@ Globals:
         - !Ref PrivateSubnet1
       SecurityGroupIds:
         - !Ref NoIngressSecurityGroup    
-    Tags:
-      ProjectName: test
-      Environment: !If [IsDev, Development, !Ref Env]    
+    # Tags:
+    #   ProjectName: test
+    #   Environment: !If [IsDev, Development, !Ref Env]    
 
 Resources:
   VPC:
@@ -86,8 +86,8 @@ Resources:
           Value: !Sub 'test-platform-vpc-${Env}'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+        # - Key: Environment
+        #   Value: !If [IsDev, Development, !Ref Env]
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -97,8 +97,6 @@ Resources:
           Value: !Sub 'test-platform-vpc-${Env}'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
 
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -118,8 +116,8 @@ Resources:
           Value: !Sub 'test-platform-vpc-${Env} Public Subnet (AZ1)'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+        # - Key: Environment
+        #   Value: !If [IsDev, Development, !Ref Env]
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
@@ -133,8 +131,6 @@ Resources:
           Value: !Sub 'test-platform-vpc-${Env} Public Subnet (AZ2)'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -148,8 +144,6 @@ Resources:
           Value: !Sub 'test-platform-vpc-${Env} Private Subnet (AZ1)'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -163,8 +157,6 @@ Resources:
           Value: !Sub 'test-platform-vpc-${Env} Private Subnet (AZ2)'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
 
   PrivateSubnet3:
     Type: AWS::EC2::Subnet
@@ -178,8 +170,6 @@ Resources:
           Value: !Sub 'test-platform-vpc-${Env} Private Subnet (AZ3)'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
 
   testNatGatewayEIP:
     Type: AWS::EC2::EIP
@@ -191,8 +181,6 @@ Resources:
           Value: !Sub 'test-platform-ng-eip-${Env}'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
 
   NatGateway:
     Type: AWS::EC2::NatGateway
@@ -204,8 +192,6 @@ Resources:
           Value: !Sub 'test-platform-vpc-ng-${Env}'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -216,8 +202,6 @@ Resources:
           Value: !Sub 'test-platform-vpc-${Env} Public Routes'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
@@ -248,8 +232,6 @@ Resources:
           Value: !Sub 'test-platform-vpc-${Env} Private Routes (AZ1)'
         - Key: ProjectName
           Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
 
   DefaultPrivateRoute:
     Type: AWS::EC2::Route
@@ -399,9 +381,7 @@ Resources:
         Enabled: true
       Tags:
         - Key: ProjectName
-          Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]  
+          Value: test  
 
 Outputs:
   testApi:
