@@ -333,7 +333,7 @@ Resources:
   testApi:
     Type: AWS::Serverless::Api
     Properties:
-      API_ENV: !Ref API_ENV
+      Api_Env: !Ref API_ENV
       CacheClusterEnabled: true
       CacheClusterSize: '0.5'
       MethodSettings:
