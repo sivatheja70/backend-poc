@@ -85,7 +85,7 @@ jobs:
           echo "::set-output name=params::$PARAMS"
 
       - name: Deploy Backend
-        if: github.event_name == 'if_merged'
+        # if: github.event_name == 'if_merged'
         env:         
           # ENV: ${{ secrets.ENV }}
           PARAMS: ${{ steps.construct-params.outputs.params }}
