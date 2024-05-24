@@ -69,12 +69,15 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          Env: ${{ secrets.ENV }}
+          ENV: ${{ secrets.ENV }}
           STAGENAME: ${{ secrets.STAGENAME }}
         run: |
-          printenv | grep 'Env' > .env.${{ secrets.ENV }}
-          printenv | grep 'STAGENAME' > .env.${{ secrets.STAGENAME }}
-          # cat .env.${{ secrets.ENV }}
+          echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" > .env
+          echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> .env
+          echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> .env
+          echo "ENV=${ENV}" >> .env
+          echo "STAGENAME=${STAGENAME}" >> .env
+          cat .env
 
       - name: Read .env file and construct parameter overrides
         id: construct-params
@@ -83,15 +86,13 @@ jobs:
           while IFS= read -r line; do
             IFS='=' read -r key value <<< "$line"
             PARAMS="$PARAMS ParameterKey=$key,ParameterValue=$value"
-          done < .env.${{ secrets.ENV }}
+          done < .env
           echo "::set-output name=params::$PARAMS"
+          echo "PARAMS=$PARAMS" >> $GITHUB_ENV
 
       - name: Deploy Backend
-        # if: github.event_name == 'if_merged'
         env:         
-          ENV: ${{ secrets.ENV }}
-          # PARAMS: ${{ steps.construct-params.outputs.params }}
-          STAGENAME: ${{ secrets.STAGENAME }}
+          PARAMS: ${{ env.PARAMS }}
         run: |
           sam validate
           sam build
