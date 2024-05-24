@@ -39,16 +39,19 @@ Parameters:
     Type: String
     Default: 10.180.22.0/24     
 
-# Conditions:
-#   IsProd: !Equals
-#     - !Ref ENV
-#     - prod
-#   IsStage: !Equals
-#     - !Ref ENV
-#     - stage
-#   IsDev: !Equals
-#     - !Ref ENV
-#     - dev
+Conditions:
+  IsProd: !Equals
+    - !Ref ENV
+    - prod
+  IsStage: !Equals
+    - !Ref ENV
+    - stage
+  IsDev: !Equals
+    - !Ref ENV
+    - dev
+  IsMain: !Equals
+    - !Ref ENV
+    - main  
     
 Globals:
   Function:
