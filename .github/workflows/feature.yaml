@@ -10,7 +10,7 @@ jobs:
   
   unit_test:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
+    # if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -25,9 +25,15 @@ jobs:
           npm i
           npm run test
 
-  deployment:
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Prettier Check
+        run: prettier --check .    
+
+  if_merged:
     runs-on: ubuntu-latest
-    # if: github.event_name == 'push' && (github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.ref == 'refs/heads/main')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.ref == 'refs/heads/main')
     environment:
       name: main
     steps:
@@ -57,12 +63,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-      # - name: Setup dependencies
-      #   run: npm run setup-deps
-
-      # - name: Run Unit Tests
-      #   run: NODE_OPTIONS=--max-old-space-size=8192 npm test
 
       - name: Create .env file from secrets
         env:
