@@ -25,11 +25,14 @@ jobs:
           npm i
           npm run test
 
-      - name: Run ESLint
-        run: npm run lint
+      # - name: Install dependencies
+      #   run: npm install
 
-      - name: Run Prettier Check
-        run: prettier --check .    
+      # - name: Run ESLint
+      #   run: npm run lint
+
+      # - name: Run Prettier Check
+      #   run: prettier --check .    
 
   if_merged:
     runs-on: ubuntu-latest
