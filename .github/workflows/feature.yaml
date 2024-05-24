@@ -53,7 +53,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
@@ -74,7 +74,7 @@ jobs:
         run: |
           printenv | grep 'Env' > .env.${{ secrets.ENV }}
           printenv | grep 'STAGENAME' > .env.${{ secrets.STAGENAME }}
-          cat .env.${{ secrets.ENV }}
+          # cat .env.${{ secrets.ENV }}
 
       - name: Read .env file and construct parameter overrides
         id: construct-params
