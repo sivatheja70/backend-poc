@@ -297,9 +297,9 @@ Resources:
             Path: /login
             Method: post
             RestApiId: !Ref testApi
-      Policies:
-      - DynamoDBCrudPolicy:
-          TableName: !Ref LockOutInfoTable
+      # Policies:
+      # - DynamoDBCrudPolicy:
+      #     TableName: !Ref LockOutInfoTable
 
   loginFunctionLogGroup:
     Type: AWS::Logs::LogGroup
