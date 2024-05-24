@@ -69,15 +69,15 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          Env: ${{ secrets.ENV }}
+          ENV: ${{ secrets.ENV }}
           STAGENAME: ${{ secrets.STAGENAME }}
         run: |
-          echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" > .env
-          echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> .env
-          echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> .env
-          echo "Env=${ENV}" >> .env
-          echo "STAGENAME=${STAGENAME}" >> .env
-          cat .env
+          echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" > .env.${{ secrets.ENV }}
+          echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> .env.${{ secrets.ENV }}
+          echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> .env.${{ secrets.ENV }}
+          echo "ENV=${ENV}" >> .env.${{ secrets.ENV }}
+          echo "STAGENAME=${STAGENAME}" >> .env.${{ secrets.ENV }}
+          cat .env.${{ secrets.ENV }}
 
       - name: Read .env file and construct parameter overrides
         id: construct-params
