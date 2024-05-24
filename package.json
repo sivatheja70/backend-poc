@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "test": "jest --config=jest.config.test.mjs",
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "install-deps": "chmod +x dependency.sh && bash dependency.sh"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
