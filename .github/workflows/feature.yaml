@@ -86,7 +86,7 @@ jobs:
           while IFS= read -r line; do
             IFS='=' read -r key value <<< "$line"
             PARAMS="$PARAMS ParameterKey=$key,ParameterValue=$value"
-          done < .env
+          done < .env.${{ secrets.ENV }}
           echo "::set-output name=params::$PARAMS"
           echo "PARAMS=$PARAMS" >> $GITHUB_ENV
 
