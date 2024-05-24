@@ -84,6 +84,7 @@ jobs:
             IFS='=' read -r key value <<< "$line"
             PARAMS="$PARAMS ParameterKey=$key,ParameterValue=$value"
           done < .env.${{ secrets.ENV }}
+          done < .env.${{ secrets.STAGENAME }}
           echo "::set-output name=params::$PARAMS"
 
       - name: Deploy Backend
