@@ -1,18 +1,26 @@
 #!/bin/bash
 
-# List of directories where npm install should be run
-directories=("login" "property" "layers/nodejs" "dependencies/nodejs")
+# Function to get all directories in the current working directory that contain a package.json
+getDirectoriesWithPackageJson() {
+    for dir in */; do
+        if [[ -f "$dir/package.json" ]]; then
+            echo "$dir"
+        fi
+    done
+}
 
 # Iterate over each directory and run npm install
-for dir in "${directories[@]}"; do
-    echo "Running npm install in $dir"
-    if [ -d "$dir" ]; then
-        (npm i && cd "$dir" && npm install)
-        if [ $? -ne 0 ]; then
-            echo "npm install failed in $dir"
-            exit 1
+runNpmInstallInDirectories() {
+    directories=$(getDirectoriesWithPackageJson)
+    for dir in $directories; do
+        echo "Running npm install in $dir"
+        (cd "$dir" && npm install)
+        if [ $? -eq 0 ]; then
+            echo "npm install completed in $dir"
+        else
+            echo "Failed to run npm install in $dir"
         fi
-    else
-        echo "Directory $dir does not exist"
-    fi
-done
+    done
+}
+
+runNpmInstallInDirectories
