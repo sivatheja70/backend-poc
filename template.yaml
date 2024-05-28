@@ -336,6 +336,12 @@ Resources:
       LogGroupName: !Join ['', ['/aws/lambda/', !Ref PropertyFunction]]
       RetentionInDays: !If [IsDev, 7, 365]
 
+  testApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', ['/aws/apigateway/', !Sub '${AWS::StackName}', '/test-custom-log-group']]
+      RetentionInDays: !If [IsDev, 7, 365]  
+
   testApi:
     Type: AWS::Serverless::Api
     Properties:
