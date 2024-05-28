@@ -307,9 +307,9 @@ Resources:
             RestApiId: !Ref testApi      
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${ENV}']
+            TableName: !Sub 'user-lockout-${ENV}'
         - DynamoDBReconfigurePolicy:
-            TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${ENV}']
+            TableName: !Sub 'user-lockout-${ENV}'
 
   LoginFunctionLogGroup:
     Type: AWS::Logs::LogGroup
