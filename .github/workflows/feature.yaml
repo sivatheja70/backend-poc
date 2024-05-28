@@ -2,12 +2,16 @@ name: Build and Deploy
 
 on:
   push:
-    # types: [opened, synchronize, reopened, closed]
     branches:
       - dev
+  workflow_dispatch:
+    inputs:
+      approve_changeset:
+        description: 'Approve CloudFormation Change Set'
+        required: true
+        type: boolean
 
 jobs:
-  
   unit_test:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
@@ -25,11 +29,8 @@ jobs:
           npm i
           npm run test
 
-  deploy:
+  create_change_set:
     runs-on: ubuntu-latest
-    # if: github.event_name == 'push' && (github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.ref == 'refs/heads/main')
-    environment:
-      name: main
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -58,7 +59,6 @@ jobs:
       - name: Install dependencies
         run: npm run install-deps
 
-
       - name: Create .env file from secrets
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -85,101 +85,60 @@ jobs:
           echo "::set-output name=params::$PARAMS"
           echo "PARAMS=$PARAMS" >> $GITHUB_ENV
 
-      - name: Deploy Backend
-        env:         
-          PARAMS: ${{ env.PARAMS }}
+      - name: Create CloudFormation change set
         run: |
           sam validate
           sam build
-          sam deploy --parameter-overrides $PARAMS 
+          sam deploy --no-execute-changeset --parameter-overrides $PARAMS
+        env:
+          PARAMS: ${{ steps.construct-params.outputs.params }}
 
-  # notify_on_success:
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: main
-  #   needs: if_merged
-  #   if: success()
-  #   steps:
-  #     - name: Notify Slack for pipeline success
-  #       env:
-  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-  #         REPO_NAME: ${{ secrets.REPO_NAME }}
-  #         ENVIRONMENT: ${{ secrets.ENV }}  
-  #         REPO_SLUG: ${{ secrets.REPO_SLUG }}
-  #       run: |
-  #         curl -X POST -H 'Content-type: application/json' --data '{
-  #           "text": "GitHub Pipeline Status Notification",
-  #           "attachments": [
-  #             {
-  #               "fields": [
-  #                 {
-  #                   "title": "Repository",
-  #                   "value": "'${REPO_NAME}'"
-  #                 },
-  #                 {
-  #                   "title": "Environment",
-  #                   "value": "'${ENVIRONMENT}'"
-  #                 },
-  #                 {
-  #                   "title": "Status",
-  #                   "value": "SUCCESS",
-  #                   "color": "00FF00"
-  #                 },
-  #                 {
-  #                   "title": "Pipeline URL",
-  #                   "value": "https://github.com/${{ secrets.REPO_SLUG }}/${{ secrets.REPO_NAME }}/actions/runs/${{ github.run_id }}"
-  #                 },
-  #                 {
-  #                   "title": "Branch",
-  #                   "value": "${{ github.ref }}"
-  #                 }
-  #               ]
-  #             }
-  #           ]
-  #         }' $SLACK_WEBHOOK_URL
+  wait_for_approval:
+    runs-on: ubuntu-latest
+    needs: create_change_set
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.approve_changeset == 'true'
+    steps:
+      - name: Manual Approval
+        run: |
+          echo "Manual approval step. Review the change set and approve it manually."
+          while [ "$(aws cloudformation describe-change-set --change-set-name my-change-set --stack-name my-stack --query 'Status' --output text)" != "CREATE_COMPLETE" ]; do
+            echo "Waiting for manual approval..."
+            sleep 30
+          done
 
-  # notify_on_failure:
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: main
-  #   needs: if_merged
-  #   if: failure()
-  #   steps:
-  #     - name: Notify Slack for pipeline failure
-  #       env:
-  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-  #         REPO_NAME: ${{ secrets.REPO_NAME }}
-  #         ENVIRONMENT: ${{ secrets.ENV }} 
-  #         REPO_SLUG: ${{ secrets.REPO_SLUG }}
-  #       run: |
-  #         curl -X POST -H 'Content-type: application/json' --data '{
-  #           "text": "GitHub Pipeline Status Notification",
-  #           "attachments": [
-  #             {
-  #               "fields": [
-  #                 {
-  #                   "title": "Repository",
-  #                   "value": "'${REPO_NAME}'"
-  #                 },
-  #                 {
-  #                   "title": "Environment",
-  #                   "value": "'${ENVIRONMENT}'"
-  #                 },
-  #                 {
-  #                   "title": "Status",
-  #                   "value": "FAILED",
-  #                   "color": "#FF0000"
-  #                 },
-  #                 {
-  #                   "title": "Pipeline URL",
-  #                   "value": "https://github.com/${{ secrets.REPO_SLUG }}/${{ secrets.REPO_NAME }}/actions/runs/${{ github.run_id }}"
-  #                 },
-  #                 {
-  #                   "title": "Branch",
-  #                   "value": "${{ github.ref }}"
-  #                 }
-  #               ]
-  #             }
-  #           ]
-  #         }' $SLACK_WEBHOOK_URL
-        
+  deploy:
+    runs-on: ubuntu-latest
+    needs: wait_for_approval
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install and Update AWS SAM CLI
+        run: |
+          curl -L -o aws-sam-cli-linux-x86_64.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+          unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+          sudo ./sam-installation/install --update
+          sam --version
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          role-duration-seconds: 1200
+          audience: sts.amazonaws.com
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm run install-deps
+
+      - name: Execute CloudFormation change set
+        run: |
+          sam deploy --no-confirm-changeset --parameter-overrides $PARAMS
+        env:
+          PARAMS: ${{ needs.create_change_set.outputs.params }}

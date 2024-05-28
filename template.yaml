@@ -6,7 +6,7 @@ Description: >
   Sample SAM Template for sam-app3
 
 Parameters:
-  Env:
+  ENV:
     Type: String
     AllowedValues:
       - local
@@ -14,7 +14,7 @@ Parameters:
       - test
       - prod
       - stage
-  StageName: 
+  STAGENAME: 
     Type: String 
   VpcCIDR:
     Type: String
@@ -42,13 +42,13 @@ Parameters:
 
 Conditions:
   IsProd: !Equals
-    - !Ref Env
+    - !Ref ENV
     - prod
   IsStage: !Equals
-    - !Ref Env
+    - !Ref ENV
     - stage
   IsDev: !Equals
-    - !Ref Env
+    - !Ref ENV
     - dev
 
 Globals:
@@ -68,12 +68,12 @@ Globals:
       - !Ref SharedLayer
     Environment:
       Variables:
-        Env: !Ref Env
+        ENV: !Ref ENV
         DYNAMO_DB_LOCAL: http://dynamodb-local:8000
         REDIS_DB_LOCAL: redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@redis-cache:6380
     Tags:
       ProjectName: Fortress
-      Environment: !If [IsDev, Development, !Ref Env]
+      Environment: !If [IsDev, Development, !Ref ENV]
   Api:
     Cors:
       AllowMethods: "'*'"
@@ -89,22 +89,22 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${Env}'
+          Value: !Sub 'Fortress-platform-vpc-${ENV}'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${Env}'
+          Value: !Sub 'Fortress-platform-vpc-${ENV}'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -121,11 +121,11 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${Env} Public Subnet (AZ1)'
+          Value: !Sub 'Fortress-platform-vpc-${ENV} Public Subnet (AZ1)'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
@@ -136,11 +136,11 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${Env} Public Subnet (AZ2)'
+          Value: !Sub 'Fortress-platform-vpc-${ENV} Public Subnet (AZ2)'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -151,11 +151,11 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${Env} Private Subnet (AZ1)'
+          Value: !Sub 'Fortress-platform-vpc-${ENV} Private Subnet (AZ1)'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -166,11 +166,11 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${Env} Private Subnet (AZ2)'
+          Value: !Sub 'Fortress-platform-vpc-${ENV} Private Subnet (AZ2)'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   PrivateSubnet3:
     Type: AWS::EC2::Subnet
@@ -181,11 +181,11 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${Env} Private Subnet (AZ3)'
+          Value: !Sub 'Fortress-platform-vpc-${ENV} Private Subnet (AZ3)'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   FortressNatGatewayEIP:
     Type: AWS::EC2::EIP
@@ -194,11 +194,11 @@ Resources:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-ng-eip-${Env}'
+          Value: !Sub 'Fortress-platform-ng-eip-${ENV}'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   NatGateway:
     Type: AWS::EC2::NatGateway
@@ -207,11 +207,11 @@ Resources:
       SubnetId: !Ref PublicSubnet1
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-ng-${Env}'
+          Value: !Sub 'Fortress-platform-vpc-ng-${ENV}'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -219,11 +219,11 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${Env} Public Routes'
+          Value: !Sub 'Fortress-platform-vpc-${ENV} Public Routes'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
@@ -251,11 +251,11 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${Env} Private Routes (AZ1)'
+          Value: !Sub 'Fortress-platform-vpc-${ENV} Private Routes (AZ1)'
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
   DefaultPrivateRoute:
     Type: AWS::EC2::Route
@@ -285,7 +285,7 @@ Resources:
   NoIngressSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub 'fortress-no-ingress-sg-${Env}'
+      GroupName: !Sub 'fortress-no-ingress-sg-${ENV}'
       GroupDescription: 'Security group with no ingress rule'
       VpcId: !Ref VPC
 
@@ -303,9 +303,9 @@ Resources:
             RestApiId: !Ref FortressApi      
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${Env}']
+            TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${ENV}']
         - DynamoDBReconfigurePolicy:
-            TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${Env}']
+            TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${ENV}']
 
   LoginFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -335,7 +335,7 @@ Resources:
   FortressApi:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: !Ref StageName
+      StageName: !Ref STAGENAME
       CacheClusterEnabled: true
       CacheClusterSize: '0.5'
       MethodSettings:
@@ -358,7 +358,7 @@ Resources:
   SharedLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: !If [IsDev, SharedLayer, !Sub 'SharedLayer-${Env}']
+      LayerName: !If [IsDev, SharedLayer, !Sub 'SharedLayer-${ENV}']
       Description: Shared NPM package and Layer.
       ContentUri: 'layer/'
       CompatibleRuntimes:
@@ -369,7 +369,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     Condition: IsNotPreprod
     Properties:
-      TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${Env}']
+      TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${ENV}']
       AttributeDefinitions:
         - AttributeName: user_name
           AttributeType: S
@@ -394,7 +394,7 @@ Resources:
         - Key: ProjectName
           Value: Fortress
         - Key: Environment
-          Value: !If [IsDev, Development, !Ref Env]
+          Value: !If [IsDev, Development, !Ref ENV]
 
 Outputs:
   VPCId:
@@ -410,7 +410,7 @@ Outputs:
     Value: !Ref SharedLayer
     Export:
       Name: !Sub '${AWS::StackName}-SharedLayerExport'
-  CapLoyaltyPlatformApi:
+  FortressApi:
     Description: 'API Gateway endpoint URL'
     Value: !Sub 'https://${AWS::StackName}.execute-api.${AWS::Region}.amazonaws.com/'
   LambdaFunctionNames:
