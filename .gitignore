@@ -99,6 +99,7 @@ typings/
 .env*.local
 env.json
 .env.dev
+.env.*
 
 # Gatsby files
 .cache/
