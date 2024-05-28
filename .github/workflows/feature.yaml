@@ -103,9 +103,9 @@ jobs:
       - name: Manual Approval
         run: |
           echo "Manual approval step. Review the change set and approve it manually."
-          while [ "$(aws cloudformation describe-change-set --change-set-name my-change-set --stack-name my-stack --query 'Status' --output text)" != "CREATE_COMPLETE" ]; do
+          while [ "$(aws cloudformation describe-change-set --change-set-name test-poc --stack-name test-poc --query 'Status' --output text)" != "CREATE_COMPLETE" ]; do
             echo "Waiting for manual approval..."
-            sleep 30
+            sleep 300
           done
 
   deploy:
