@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
-      - main
+      - dev
 
 jobs:
   
@@ -25,7 +25,7 @@ jobs:
           npm i
           npm run test
 
-  if_merged:
+  deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.ref == 'refs/heads/main')
     environment:
@@ -53,27 +53,25 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: npm run install-deps
 
-      # - name: Setup dependencies
-      #   run: npm run setup-deps
-
-      # - name: Run Unit Tests
-      #   run: NODE_OPTIONS=--max-old-space-size=8192 npm test
 
       - name: Create .env file from secrets
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          Env: ${{ secrets.ENV }}
-          StageName: ${{ secrets.STAGENAME }}
+          ENV: ${{ secrets.ENV }}
+          STAGENAME: ${{ secrets.STAGENAME }}
         run: |
-          printenv | grep 'Env' > .env.${{ secrets.ENV }}
-          printenv | grep 'API' > .env.${{ secrets.STAGENAME }}
+          echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" > .env.${{ secrets.ENV }}
+          echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> .env.${{ secrets.ENV }}
+          echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> .env.${{ secrets.ENV }}
+          echo "ENV=${ENV}" >> .env.${{ secrets.ENV }}
+          echo "STAGENAME=${STAGENAME}" >> .env.${{ secrets.ENV }}
           cat .env.${{ secrets.ENV }}
 
       - name: Read .env file and construct parameter overrides
@@ -85,13 +83,11 @@ jobs:
             PARAMS="$PARAMS ParameterKey=$key,ParameterValue=$value"
           done < .env.${{ secrets.ENV }}
           echo "::set-output name=params::$PARAMS"
+          echo "PARAMS=$PARAMS" >> $GITHUB_ENV
 
       - name: Deploy Backend
-        # if: github.event_name == 'if_merged'
         env:         
-          ENV: ${{ secrets.ENV }}
-          PARAMS: ${{ steps.construct-params.outputs.params }}
-          StageName: ${{ secrets.STAGENAME }}
+          PARAMS: ${{ env.PARAMS }}
         run: |
           sam validate
           sam build

@@ -1,22 +1,16 @@
 {
-  "name": "fortress-store-portal",
-  "version": "0.0.0",
-  "private": true,
+  "name": "hello_world",
+  "version": "1.0.0",
+  "description": "hello world sample for NodeJS",
+  "main": "app.js",
+  "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
+  "author": "SAM CLI",
+  "license": "MIT",
+  "dependencies": {},
   "scripts": {
-    "start": "node ./bin/www"
-  },
-  "dependencies": {
-    "axios": "^1.6.8",
-    "cookie-parser": "~1.4.4",
-    "crypto": "^1.0.1",
-    "debug": "~2.6.9",
-    "express": "~4.16.1",
-    "http-errors": "~1.6.3",
-    "jade": "~1.11.0",
-    "lodash": "^4.17.21",
-    "morgan": "~1.9.1"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "axios-mock-adapter": "^1.22.0"
+    "@babel/preset-env": "^7.20.2"
   }
 }
