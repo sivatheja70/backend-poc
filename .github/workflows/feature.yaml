@@ -31,6 +31,8 @@ jobs:
 
   create_change_set:
     runs-on: ubuntu-latest
+    environment:
+      name: dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
