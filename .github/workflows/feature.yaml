@@ -22,12 +22,13 @@ jobs:
 
       - name: Unit-test
         run: |
-          npm i
+          npm install
           npm run test
 
-  deploy:
+  if_merged:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.ref == 'refs/heads/main')
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} || 
+        ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.ref == 'refs/heads/main' }}
     environment:
       name: main
     steps:
@@ -57,7 +58,6 @@ jobs:
 
       - name: Install dependencies
         run: npm run install-deps
-
 
       - name: Create .env file from secrets
         env:
@@ -91,95 +91,4 @@ jobs:
         run: |
           sam validate
           sam build
-          sam deploy --parameter-overrides $PARAMS 
-
-  # notify_on_success:
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: main
-  #   needs: if_merged
-  #   if: success()
-  #   steps:
-  #     - name: Notify Slack for pipeline success
-  #       env:
-  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-  #         REPO_NAME: ${{ secrets.REPO_NAME }}
-  #         ENVIRONMENT: ${{ secrets.ENV }}  
-  #         REPO_SLUG: ${{ secrets.REPO_SLUG }}
-  #       run: |
-  #         curl -X POST -H 'Content-type: application/json' --data '{
-  #           "text": "GitHub Pipeline Status Notification",
-  #           "attachments": [
-  #             {
-  #               "fields": [
-  #                 {
-  #                   "title": "Repository",
-  #                   "value": "'${REPO_NAME}'"
-  #                 },
-  #                 {
-  #                   "title": "Environment",
-  #                   "value": "'${ENVIRONMENT}'"
-  #                 },
-  #                 {
-  #                   "title": "Status",
-  #                   "value": "SUCCESS",
-  #                   "color": "00FF00"
-  #                 },
-  #                 {
-  #                   "title": "Pipeline URL",
-  #                   "value": "https://github.com/${{ secrets.REPO_SLUG }}/${{ secrets.REPO_NAME }}/actions/runs/${{ github.run_id }}"
-  #                 },
-  #                 {
-  #                   "title": "Branch",
-  #                   "value": "${{ github.ref }}"
-  #                 }
-  #               ]
-  #             }
-  #           ]
-  #         }' $SLACK_WEBHOOK_URL
-
-  # notify_on_failure:
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: main
-  #   needs: if_merged
-  #   if: failure()
-  #   steps:
-  #     - name: Notify Slack for pipeline failure
-  #       env:
-  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-  #         REPO_NAME: ${{ secrets.REPO_NAME }}
-  #         ENVIRONMENT: ${{ secrets.ENV }} 
-  #         REPO_SLUG: ${{ secrets.REPO_SLUG }}
-  #       run: |
-  #         curl -X POST -H 'Content-type: application/json' --data '{
-  #           "text": "GitHub Pipeline Status Notification",
-  #           "attachments": [
-  #             {
-  #               "fields": [
-  #                 {
-  #                   "title": "Repository",
-  #                   "value": "'${REPO_NAME}'"
-  #                 },
-  #                 {
-  #                   "title": "Environment",
-  #                   "value": "'${ENVIRONMENT}'"
-  #                 },
-  #                 {
-  #                   "title": "Status",
-  #                   "value": "FAILED",
-  #                   "color": "#FF0000"
-  #                 },
-  #                 {
-  #                   "title": "Pipeline URL",
-  #                   "value": "https://github.com/${{ secrets.REPO_SLUG }}/${{ secrets.REPO_NAME }}/actions/runs/${{ github.run_id }}"
-  #                 },
-  #                 {
-  #                   "title": "Branch",
-  #                   "value": "${{ github.ref }}"
-  #                 }
-  #               ]
-  #             }
-  #           ]
-  #         }' $SLACK_WEBHOOK_URL
-        
+          sam deploy --parameter-overrides $PARAMS
