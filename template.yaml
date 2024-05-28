@@ -371,9 +371,9 @@ Resources:
   # Tables #
   LockoutInfoTable:
     Type: AWS::DynamoDB::Table
-    Condition: IsNotPreprod
+    # Condition: IsNotPreprod
     Properties:
-      TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${ENV}']
+      TableName: !Sub 'user-lockout-${ENV}'
       AttributeDefinitions:
         - AttributeName: user_name
           AttributeType: S
