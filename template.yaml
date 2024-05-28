@@ -17,29 +17,29 @@ Parameters:
       - main
   STAGENAME: 
     Type: String 
-  VpcCIDR:
-    Type: String
-    Default: 10.180.0.0/16
+  # VpcCIDR:
+  #   Type: String
+  #   Default: 10.180.0.0/16
 
-  PublicSubnet1CIDR:
-    Type: String
-    Default: 10.180.10.0/24
+  # PublicSubnet1CIDR:
+  #   Type: String
+  #   Default: 10.180.10.0/24
 
-  PublicSubnet2CIDR:
-    Type: String
-    Default: 10.180.11.0/24
+  # PublicSubnet2CIDR:
+  #   Type: String
+  #   Default: 10.180.11.0/24
 
-  PrivateSubnet1CIDR:
-    Type: String
-    Default: 10.180.20.0/24
+  # PrivateSubnet1CIDR:
+  #   Type: String
+  #   Default: 10.180.20.0/24
 
-  PrivateSubnet2CIDR:
-    Type: String
-    Default: 10.180.21.0/24
+  # PrivateSubnet2CIDR:
+  #   Type: String
+  #   Default: 10.180.21.0/24
 
-  PrivateSubnet3CIDR:
-    Type: String
-    Default: 10.180.22.0/24     
+  # PrivateSubnet3CIDR:
+  #   Type: String
+  #   Default: 10.180.22.0/24     
 
 Conditions:
   IsProd: !Equals
@@ -51,6 +51,9 @@ Conditions:
   IsDev: !Equals
     - !Ref ENV
     - dev
+  IsMain: !Equals
+    - !Ref ENV
+    - main  
 
 Globals:
   Function:
@@ -58,11 +61,11 @@ Globals:
     MemorySize: 512
     Runtime: nodejs18.x
     Tracing: Active
-    VpcConfig:
-      SubnetIds:
-        - !Ref PrivateSubnet1
-      SecurityGroupIds:
-        - !Ref NoIngressSecurityGroup
+    # VpcConfig:
+    #   SubnetIds:
+    #     - !Ref PrivateSubnet1
+    #   SecurityGroupIds:
+    #     - !Ref NoIngressSecurityGroup
     Architectures:
       - x86_64
     Layers:
@@ -73,7 +76,7 @@ Globals:
         DYNAMO_DB_LOCAL: http://dynamodb-local:8000
         REDIS_DB_LOCAL: redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@redis-cache:6380
     Tags:
-      ProjectName: Fortress
+      ProjectName: test
       Environment: !If [IsDev, Development, !Ref ENV]
   Api:
     Cors:
@@ -82,213 +85,213 @@ Globals:
       AllowOrigin: "'*'"
 
 Resources:
-  VPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !Ref VpcCIDR
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${ENV}'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # VPC:
+  #   Type: AWS::EC2::VPC
+  #   Properties:
+  #     CidrBlock: !Ref VpcCIDR
+  #     EnableDnsSupport: true
+  #     EnableDnsHostnames: true
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-${ENV}'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  InternetGateway:
-    Type: AWS::EC2::InternetGateway
-    Properties:
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${ENV}'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # InternetGateway:
+  #   Type: AWS::EC2::InternetGateway
+  #   Properties:
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-${ENV}'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  InternetGatewayAttachment:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      InternetGatewayId: !Ref InternetGateway
-      VpcId: !Ref VPC
+  # InternetGatewayAttachment:
+  #   Type: AWS::EC2::VPCGatewayAttachment
+  #   Properties:
+  #     InternetGatewayId: !Ref InternetGateway
+  #     VpcId: !Ref VPC
 
-  PublicSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [0, !GetAZs '']
-      CidrBlock: !Ref PublicSubnet1CIDR
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${ENV} Public Subnet (AZ1)'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # PublicSubnet1:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     AvailabilityZone: !Select [0, !GetAZs '']
+  #     CidrBlock: !Ref PublicSubnet1CIDR
+  #     MapPublicIpOnLaunch: true
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-${ENV} Public Subnet (AZ1)'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  PublicSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [1, !GetAZs '']
-      CidrBlock: !Ref PublicSubnet2CIDR
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${ENV} Public Subnet (AZ2)'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # PublicSubnet2:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     AvailabilityZone: !Select [1, !GetAZs '']
+  #     CidrBlock: !Ref PublicSubnet2CIDR
+  #     MapPublicIpOnLaunch: true
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-${ENV} Public Subnet (AZ2)'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  PrivateSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [0, !GetAZs '']
-      CidrBlock: !Ref PrivateSubnet1CIDR
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${ENV} Private Subnet (AZ1)'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # PrivateSubnet1:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     AvailabilityZone: !Select [0, !GetAZs '']
+  #     CidrBlock: !Ref PrivateSubnet1CIDR
+  #     MapPublicIpOnLaunch: false
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-${ENV} Private Subnet (AZ1)'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  PrivateSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [1, !GetAZs '']
-      CidrBlock: !Ref PrivateSubnet2CIDR
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${ENV} Private Subnet (AZ2)'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # PrivateSubnet2:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     AvailabilityZone: !Select [1, !GetAZs '']
+  #     CidrBlock: !Ref PrivateSubnet2CIDR
+  #     MapPublicIpOnLaunch: false
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-${ENV} Private Subnet (AZ2)'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  PrivateSubnet3:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [2, !GetAZs '']
-      CidrBlock: !Ref PrivateSubnet3CIDR
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${ENV} Private Subnet (AZ3)'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # PrivateSubnet3:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     AvailabilityZone: !Select [2, !GetAZs '']
+  #     CidrBlock: !Ref PrivateSubnet3CIDR
+  #     MapPublicIpOnLaunch: false
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-${ENV} Private Subnet (AZ3)'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  FortressNatGatewayEIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-ng-eip-${ENV}'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # testNatGatewayEIP:
+  #   Type: AWS::EC2::EIP
+  #   DependsOn: InternetGatewayAttachment
+  #   Properties:
+  #     Domain: vpc
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-ng-eip-${ENV}'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  NatGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt FortressNatGatewayEIP.AllocationId
-      SubnetId: !Ref PublicSubnet1
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-ng-${ENV}'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # NatGateway:
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId: !GetAtt testNatGatewayEIP.AllocationId
+  #     SubnetId: !Ref PublicSubnet1
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-ng-${ENV}'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  PublicRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${ENV} Public Routes'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # PublicRouteTable:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-${ENV} Public Routes'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  DefaultPublicRoute:
-    Type: AWS::EC2::Route
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
+  # DefaultPublicRoute:
+  #   Type: AWS::EC2::Route
+  #   DependsOn: InternetGatewayAttachment
+  #   Properties:
+  #     RouteTableId: !Ref PublicRouteTable
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     GatewayId: !Ref InternetGateway
 
-  PublicSubnet1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      SubnetId: !Ref PublicSubnet1
+  # PublicSubnet1RouteTableAssociation:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId: !Ref PublicRouteTable
+  #     SubnetId: !Ref PublicSubnet1
 
-  PublicSubnet2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      SubnetId: !Ref PublicSubnet2
+  # PublicSubnet2RouteTableAssociation:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId: !Ref PublicRouteTable
+  #     SubnetId: !Ref PublicSubnet2
 
-  PrivateRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Sub 'Fortress-platform-vpc-${ENV} Private Routes (AZ1)'
-        - Key: ProjectName
-          Value: Fortress
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+  # PrivateRouteTable:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Sub 'test-platform-vpc-${ENV} Private Routes (AZ1)'
+  #       - Key: ProjectName
+  #         Value: test
+  #       - Key: Environment
+  #         Value: !If [IsDev, Development, !Ref ENV]
 
-  DefaultPrivateRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
+  # DefaultPrivateRoute:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId: !Ref NatGateway
 
-  PrivateSubnet1RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet1
+  # PrivateSubnet1RouteTableAssociation:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable
+  #     SubnetId: !Ref PrivateSubnet1
 
-  PrivateSubnet2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet2
+  # PrivateSubnet2RouteTableAssociation:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable
+  #     SubnetId: !Ref PrivateSubnet2
 
-  PrivateSubnet3RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      SubnetId: !Ref PrivateSubnet3
+  # PrivateSubnet3RouteTableAssociation:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId: !Ref PrivateRouteTable
+  #     SubnetId: !Ref PrivateSubnet3
 
-  NoIngressSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: !Sub 'fortress-no-ingress-sg-${ENV}'
-      GroupDescription: 'Security group with no ingress rule'
-      VpcId: !Ref VPC
+  # NoIngressSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupName: !Sub 'test-no-ingress-sg-${ENV}'
+  #     GroupDescription: 'Security group with no ingress rule'
+  #     VpcId: !Ref VPC
 
   LoginFunction:
     Type: AWS::Serverless::Function
@@ -301,7 +304,7 @@ Resources:
           Properties:
             Path: /login
             Method: post
-            RestApiId: !Ref FortressApi      
+            RestApiId: !Ref testApi      
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !If [IsPreProd, user-lockout-uat, !Sub 'user-lockout-${ENV}']
@@ -325,7 +328,7 @@ Resources:
           Properties:
             Path: /property
             Method: post
-            RestApiId: !Ref FortressApi   
+            RestApiId: !Ref testApi   
   
   PropertyFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -333,7 +336,7 @@ Resources:
       LogGroupName: !Join ['', ['/aws/lambda/', !Ref PropertyFunction]]
       RetentionInDays: !If [IsDev, 7, 365]
 
-  FortressApi:
+  testApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref STAGENAME
@@ -353,7 +356,7 @@ Resources:
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
       AccessLogSetting:
-        DestinationArn: !GetAtt FortressApiLogGroup.Arn
+        DestinationArn: !GetAtt testApiLogGroup.Arn
         Format: '$context.requestId $context.identity.sourceIp $context.identity.caller $context.identity.user $context.httpMethod $context.resourcePath $context.status $context.integration.latency $context.requestTime $context.protocol $context.responseLength $context.integrationErrorMessage' 
 
   SharedLayer:
@@ -393,25 +396,25 @@ Resources:
         PointInTimeRecoveryEnabled: true
       Tags:
         - Key: ProjectName
-          Value: Fortress
+          Value: test
         - Key: Environment
           Value: !If [IsDev, Development, !Ref ENV]
 
 Outputs:
-  VPCId:
-    Description: VPC ID
-    Value: !Ref PrivateSubnet1
-    Export:
-      Name: !Sub '${AWS::StackName}-VPCId'
-  MySecurityGroupExport:
-    Value: !Ref NoIngressSecurityGroup
-    Export:
-      Name: !Sub '${AWS::StackName}-MySecurityGroupExport'
-  SharedLayerpExport:
-    Value: !Ref SharedLayer
-    Export:
-      Name: !Sub '${AWS::StackName}-SharedLayerExport'
-  FortressApi:
+  # VPCId:
+  #   Description: VPC ID
+  #   Value: !Ref PrivateSubnet1
+  #   Export:
+  #     Name: !Sub '${AWS::StackName}-VPCId'
+  # MySecurityGroupExport:
+  #   Value: !Ref NoIngressSecurityGroup
+  #   Export:
+  #     Name: !Sub '${AWS::StackName}-MySecurityGroupExport'
+  # SharedLayerpExport:
+  #   Value: !Ref SharedLayer
+  #   Export:
+  #     Name: !Sub '${AWS::StackName}-SharedLayerExport'
+  testApi:
     Description: 'API Gateway endpoint URL'
     Value: !Sub 'https://${AWS::StackName}.execute-api.${AWS::Region}.amazonaws.com/'
   LambdaFunctionNames:

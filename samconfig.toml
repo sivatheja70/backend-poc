@@ -2,9 +2,9 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "fortress-store-portal-dev"
+stack_name = "test-poc"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
-s3_prefix = "fortress-store-portal-dev"
+s3_prefix = "test-poc"
 region = "us-east-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
@@ -14,9 +14,9 @@ disable_rollback = true
 [dev]
 [dev.deploy]
 [dev.deploy.parameters]
-stack_name = "fortress-store-portal-dev"
+stack_name = "test-poc"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
-s3_prefix = "fortress-store-portal-dev"
+s3_prefix = "test-poc"
 region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
