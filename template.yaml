@@ -15,6 +15,7 @@ Parameters:
       - prod
       - stage
       - main
+      - poc
   STAGENAME: 
     Type: String 
   # VpcCIDR:
