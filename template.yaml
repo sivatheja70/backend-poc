@@ -76,9 +76,9 @@ Globals:
         ENV: !Ref ENV
         DYNAMO_DB_LOCAL: http://dynamodb-local:8000
         REDIS_DB_LOCAL: redis://:eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81@redis-cache:6380
-    Tags:
-      ProjectName: test
-      Environment: !If [IsDev, Development, !Ref ENV]
+    # Tags:
+    #   ProjectName: test
+    #   Environment: !If [IsDev, Development, !Ref ENV]
   Api:
     Cors:
       AllowMethods: "'*'"
@@ -401,11 +401,11 @@ Resources:
             ProjectionType: ALL
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
-      Tags:
-        - Key: ProjectName
-          Value: test
-        - Key: Environment
-          Value: !If [IsDev, Development, !Ref ENV]
+      # Tags:
+      #   - Key: ProjectName
+      #     Value: test
+      #   - Key: Environment
+      #     Value: !If [IsDev, Development, !Ref ENV]
 
 Outputs:
   # VPCId:

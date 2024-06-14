@@ -10,6 +10,21 @@ confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
 disable_rollback = true
+tags = "Account-Project=Capillary-Abbott,Owner-Email=bharath.kumar@zapcg.com"
+
+[poc]
+[poc.deploy]
+[poc.deploy.parameters]
+stack_name = "test-poc"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-mq3eebwnc4qm"
+s3_prefix = "test-poc"
+region = "us-east-1"
+confirm_changeset = true
+fail_on_empty_changeset = false
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
+image_repositories = []
+disable_rollback = true
+tags = "Account_Project=Capillary_Abbott, Owner_Email=bharath.kumar@zapcg.com"
 
 [dev]
 [dev.deploy]
@@ -22,6 +37,7 @@ confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 image_repositories = []
 disable_rollback = true
+tags = "Account-Project=Capillary-Abbott,Owner-Email=bharath.kumar@zapcg.com"
 
 [stage]
 [stage.deploy]
